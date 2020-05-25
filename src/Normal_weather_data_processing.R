@@ -4,7 +4,6 @@ library(suncalc)
 library(lubridate)
 library(ggplot2)
 library(okmesonet)
-library(plyr)
 library(dplyr)
 library(data.table)
 
@@ -16,14 +15,14 @@ wdsum_total = NULL
 
 for(i in 1:length(years)){ #beginning of weather data loop
   if(i == 1){
-    beginTime = "2011-06-22 00:00:00"
-    endTime = "2011-06-26 23:55"
+    beginTime = "2011-05-01 00:00:00"
+    endTime = "2011-06-30 23:55"
   } else if(i == 2){
-    beginTime = "2015-06-22 00:00:00"
-    endTime = "2015-06-26 23:55"
+    beginTime = "2015-05-01 00:00:00"
+    endTime = "2015-06-30 23:55"
   } else if(i == 3){
-    beginTime = "2019-06-22 00:00:00"
-    endTime = "2019-06-26 23:55"
+    beginTime = "2019-05-01 00:00:00"
+    endTime = "2019-06-30 23:55"
   }
   stid <- "ERIC"
   stations <- read.csv("/cloud/project/geoinfo.csv", stringsAsFactors = F)
@@ -43,23 +42,29 @@ for(i in 1:length(years)){ #beginning of weather data loop
   w$DT = as.POSIXct(w$TIME, tz = "UTC")
   w$DTL = w$DT #Saves datetime into a new vector for local datetime
   w$DATE = as.POSIXct(substr(w$TIME,0,10))
+  w$MONTH = as.factor(substr(w$TIME,6,7))
+  w$DAY = as.factor(substr(w$TIME,9,10))
   w$YMD = w$DATE
   attributes(w$DTL)$tzone = "America/Chicago" #changes datetime to Central Time Zone
   w$YMDL <- as_date(w$DTL) #gives local (oklahoma) ymd date
   
   #Splitting w dataframe by date to calculate sunrise time
   
-  w1 = w[1:288,]
-  w2 = w[289:576,]
-  w3 = w[577:864,]
-  w4 = w[865:1152,]
-  w5 = w[1153:1440,]
+  dates = w %>%
+    group_by(DATE)
   
-  dates<-list(w1,w2,w3,w4,w5)
+  dates = as.list(group_split(dates))
+  # w1 = w[1:288,]
+  # w2 = w[289:576,]
+  # w3 = w[577:864,]
+  # w4 = w[865:1152,]
+  # w5 = w[1153:1440,]
+  # 
+  # dates<-list(w1,w2,w3,w4,w5)
   
   wd = NULL
   for(d in 1:length(dates)){
-    weather = as.data.frame(dates[[d]])
+    weather = as.data.frame(dates[d])
     sr1 <- getSunlightTimes(date = as_date(weather$YMD[1]), lat = lat, lon = lon, tz = "UTC", keep = c("sunrise"))
     sr2 <- getSunlightTimes(date = as_date(weather$YMD[1]-86400), lat = lat, lon = lon, tz = "UTC", keep = c("sunrise"))
     sr1 <- sr1$sunrise
@@ -84,6 +89,9 @@ for(i in 1:length(years)){ #beginning of weather data loop
                       bin2 = wd$bins+5,
                       date = wd$YMD, 
                       dateLocal = wd$YMDL,
+                      monthLocal = substr(wd$YMDL,6,7),
+                      dayLocal = substr(wd$YMDL, 9,10),
+                      year = substr(wd$YMDL,1,4),
                       DEW = wd$DEW,
                       TAIR = wd$TAIR,
                       #fTAIR = wd$futureTAIR, 
@@ -98,7 +106,7 @@ for(i in 1:length(years)){ #beginning of weather data loop
     wdsum$model = "cold"
   }
   #wdsum_total = rbind(wdsum2011,wdsum2015,wdsum2019)
-  print(i) #prints year that is done getting data for
+  print(years[i]) #prints year that is done getting data for
 
   if(as.character(i) == as.character(dates[1])) {
     wdsum_total <- wdsum
@@ -126,8 +134,8 @@ save(wdsum, file = paste0(fname, ".Rdata"))
 # #wd <- wd[wd$MAS<6*60,] #subset to sunrise data only
 
 #Graph some data.
-#Load wdsum data so you do not need to run code again:
-load("/cloud/project/data/ERIC_weather_normal/ERIC_weather_normal.Rdata")
+load("/cloud/project/data/ERIC_weather_normal/ERIC_weather_normal.Rdata") #Load wdsum data so you do not need to run code again:
+
 Song_volume = 85
 Song_detection = 30
 Song_freq = 7000
@@ -136,15 +144,25 @@ wdsum$CallRad <- mapply(aud_range,Song_volume,Song_detection,Song_freq,wdsum$TAI
 wdtemp <- wdsum[which(wdsum$bin1<=600),]
 wdtemp$dateLocal <- as.factor(wdtemp$dateLocal )
 
-ggplot( data = wdtemp, aes(x=bin1, y=CallRad, group=dateLocal, color = dateLocal)) +
+wmeans = wdtemp %>% #Finds Means of data *cannot use dataframe name in dplyr!
+  group_by(model, bin1) %>%
+  dplyr::summarize(n = n(), #need to use dplyr:: because other libraries have the summarize function
+                   CallRadMean = mean(CallRad), 
+                   CallRadSE = (sd(CallRad)/sqrt(n)),
+                   TAIRMean = mean(TAIR),
+                   RELHMean = mean(RELH),
+                   PRESMean = mean(PRES),
+                   DEWMean = mean(DEW)
+  )
+ggplot( data = wmeans, aes(x=bin1, y=CallRadMean, group=model, color = model)) +
   geom_line()+
   theme_classic()
 
-ggplot( data = wdtemp, aes(x=bin1, y=TAIR, group=dateLocal, color = dateLocal)) +
+ggplot( data = wmeans, aes(x=bin1, y=TAIRMean, group=model, color = model)) +
   geom_line()+
   theme_classic()
 
-ggplot( data = wdtemp, aes(x=bin1, y=DEW, group=dateLocal, color = dateLocal)) +
+ggplot( data = wmeans, aes(x=bin1, y=DEWMean, group=model, color = model)) +
   geom_line() +
   theme_classic()+
   labs(x= "Min from Sunrise",

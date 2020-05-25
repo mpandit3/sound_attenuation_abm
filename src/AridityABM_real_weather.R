@@ -20,6 +20,7 @@ library(spdep)
 library(FNN)
 library(plotrix)
 library(ggplot2)
+library(dplyr)
 
 Arena = 10000        #rough size of entire square arena in meters
 HexSize = 1000       #diameter of individual hexagons (territories)
@@ -30,18 +31,10 @@ SingProb = 0.33      #probability of singing on a given turn
 MoveProb = 0.33      #probability of moving on a given turn
 RestProb = 1-(SingProb+MoveProb)  #probability of resting (not singing or moving)
 
-#Date1 <- as.POSIXct("2018-05-04", tz = "UTC")
-#Date2 <- as.POSIXct("2018-05-08", tz = "UTC")
-# Date1 <- as.POSIXct("2011-06-22", tz = "UTC")
-# Date2 <- as.POSIXct("2011-06-23", tz = "UTC")
-# Date3 <- as.POSIXct("2011-06-24", tz = "UTC")
-# Date4 <- as.POSIXct("2011-06-25", tz = "UTC")
-# Date5 <- as.POSIXct("2011-06-26", tz = "UTC")
+#wdata = "/cloud/project/data/ERIC_weather_normal/ERIC_weather_normal.Rdata"
+wdata = "~/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_052420/data/ERIC_weather_cc_uniform/ERIC_weather_cc_uniform.Rdata" #Uniform Climate Change Data
 
-wdata = "/cloud/project/data/ERIC_weather_normal/ERIC_weather_normal.Rdata"
-#wdata = "/cloud/project/data/ERIC_weather_cc_uniform/ERIC_weather_cc_uniform.Rdata" #Uniform Climate Change Data
-
-source("/cloud/project/src/Atmospheric_sound_attenuation.R")
+source("~/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_052420/src/Atmospheric_sound_attenuation.R")
 #example song radius at 25 degrees C, 50% hhumidty, 1 Atm pressure:
 att_coef(f=Song_freq, T_cel=25, h_rel=50, Pa=101.325)
 aud_range(dbOri = Song_volume, 
@@ -52,9 +45,9 @@ aud_range(dbOri = Song_volume,
           Pa = 90)
 
 #how many iterations (model runs)
-iter = 40
+iter = 4
 #duration of each run
-runTime = 360 #500 min = 8.333 hours decent run time
+runTime = 360 #360 min = 6 hours decent run time
 
 # for(k in 1:iter) { 
 #   
@@ -64,51 +57,31 @@ runTime = 360 #500 min = 8.333 hours decent run time
 #   } else {
 #     Date <- Date1
 #   }
-years = as.list(c(2011, 2015, 2019))
-dates = as.list(c("06-22", "06-23", "06-24", "06-25", "06-26"))
+years = as.list(c(2011, 2015, 2019))# 2011 is hot year, 2015 normal, 2019 cold year, all relative
+#dates = as.list(c("06-22", "06-23", "06-24", "06-25", "06-26"))
+load(wdata)
 
-for(j in 1:length(years)){
-  for(i in 1:length(dates)){
-    # modelDate = NULL
-    modelDate = paste0(years[j], sep = "-",dates[i])
-    modelDate[i] = modelDate
-    print(modelDate[i])
-    if(substr(modelDate[i],6,10) == "06-22"){
-      Date1 = modelDate[i]
-    } else if(substr(modelDate[i],6,10) == "06-23"){
-      Date2 = modelDate[i]
-    } else if(substr(modelDate[i],6,10) == "06-24"){
-      Date3 = modelDate[i]      
-    } else if(substr(modelDate[i],6,10) == "06-25"){
-      Date4 = modelDate[i]      
-    } else if(substr(modelDate[i],6,10) == "06-26"){
-      Date5 = modelDate[i]      
-    }
-  } #end of dates for loop
-  
-for(k in 1:iter) { 
+# dates = wdsum %>%
+#   group_by(date)
+# dates = group_keys(dates)
+dates = as.data.frame(table(wdsum$dateLocal))
+dates = as.vector(dates$Var1)
 
-  #Change date and parameters at midpoint
- 
-  if(k > 32) {
-    Date <- Date5
-    } else if (k > 24){
-      Date <- Date4
-      } else if (k>16){
-        Date <- Date3
-      } else if (k>8){
-        Date <- Date2
-        } else {
-          Date <- Date1
-            }
-  
+for(d in 1:length(dates)){ #dates loop
+    
+    Date = dates[d]
+
+    print(Date)
+  wdsum = NULL
+for(k in 1:iter) { #beginning of iteration loop
+
   load(wdata)
-  wdsum <- wdsum[which(wdsum$dateLocal == Date),]
+  wdsum <- wdsum[which(wdsum$dateLocal == as_date(Date)),]
   wdsum$CallRad <- mapply(aud_range,
                           Song_volume,
                           Song_detection,
                           Song_freq,
-                          wdsum$TAIR,
+                          wdsum$fTAIR,
                           wdsum$RELH,
                           wdsum$PRES)
   
@@ -225,128 +198,79 @@ for(k in 1:iter) {
     rest <- which(Hx$Action == 0)
     Hx$RestCnt[rest] <- Hx$RestCnt[rest] +1
     
-    cat(paste0("date ", Date, ". run ", k, ". Iteration ", timeCnt, ". Call radius ", CallRad, ". Birds finished ", length(which(Hx$done>1)), "\n"))
+    #cat(paste0("date ", Date, ". Iteration ", k, ". TimeStamp ", timeCnt, ". Call radius ", CallRad, ". Birds finished ", length(which(Hx$done>1)), "\n"))
     
     ################################################
     ########plot outcome############################
     ################################################
   
-    startLocs <- LocX
-    endLocs <- Hx$Loc[Mvrs,]
-    Arrows <- cbind(LocX[Mvrs,], Hx$Loc[Mvrs,])
-
-    par(mar=c(0,0,0,0))
-    Hcol = ifelse(Hx$done==0, "#FFFFCC30", ifelse(Hx$done==1, "#CCCCCC90", "#99FF6680"))
-    plot(HexPols, col=Hcol)
-    points(LocX, pch = 20, cex = 0.5, col = "red") #use LocX - unmodified by movement on this turn
-    points(Hx$Loc[which(Hx$Action==2),],  pch = 20, cex = 0.5, col = "dodgerblue") #plot movement destinations
-    arrows(x0=LocX[Mvrs,1], y0=LocX[Mvrs,2], x1=Hx$Loc[Mvrs,1], y1=Hx$Loc[Mvrs,2], length = 0.05)
-    for(i in sing){
-      cCol = ifelse(i %in% fn$orig, "#FF006645", "#CCFF6630")
-      draw.circle(x=Hx$Loc[i,1], y=Hx$Loc[i,2], radius=CallRad, col = cCol)
-    }
-    text(x=5000, y = 200, labels = paste0("Time ", timeCnt, "   Call radius = ", CallRad))
-    Sys.sleep(0.25) #pause a bit to see the plot
-  }
+    # startLocs <- LocX
+    # endLocs <- Hx$Loc[Mvrs,]
+    # Arrows <- cbind(LocX[Mvrs,], Hx$Loc[Mvrs,])
+    # 
+    # par(mar=c(0,0,0,0))
+    # Hcol = ifelse(Hx$done==0, "#FFFFCC30", ifelse(Hx$done==1, "#CCCCCC90", "#99FF6680"))
+    # plot(HexPols, col=Hcol)
+    # points(LocX, pch = 20, cex = 0.5, col = "red") #use LocX - unmodified by movement on this turn
+    # points(Hx$Loc[which(Hx$Action==2),],  pch = 20, cex = 0.5, col = "dodgerblue") #plot movement destinations
+    # arrows(x0=LocX[Mvrs,1], y0=LocX[Mvrs,2], x1=Hx$Loc[Mvrs,1], y1=Hx$Loc[Mvrs,2], length = 0.05)
+    # for(i in sing){
+    #   cCol = ifelse(i %in% fn$orig, "#FF006645", "#CCFF6630")
+    #   draw.circle(x=Hx$Loc[i,1], y=Hx$Loc[i,2], radius=CallRad, col = cCol)
+    # }
+    # text(x=5000, y = 200, labels = paste0("Time ", timeCnt, "   Call radius = ", CallRad))
+    # Sys.sleep(0.25) #pause a bit to see the plot
+    
+  } #end of timecount loop
   
   Result <- as.data.frame(Hx)         #extract data from spatial object
   Result <- Result[Result$nProx==6,]  #keep only the data from interior territories
+  Result$TotalInt = (Result$N1+Result$N2+Result$N3+Result$N4+Result$N5+Result$N6)
   Result$run = k
   Result$date = Date
-  if(k == 1) {
+  if(d == 1) {
     Results = Result
   } else {
     Results = rbind(Result, Results)
-  }
-  cells <- length(unique(Results$N))
-  #Results$total_int = (Results$N1+Results$N2+Results$N3+Results$N4+Results$N5)
-  #attach(Results)
-  Res1 <- Results[which(Results$date == Date1),]
-  Res2 <- Results[which(Results$date == Date2),]
-  Res3 <- Results[which(Results$date == Date3),]
-  Res4 <- Results[which(Results$date == Date4),]
-  Res5 <- Results[which(Results$date == Date5),]
+  }#end of Results ifelse loop
   
-  Res1$total_int = (Res1$N1+Res1$N2+Res1$N3+Res1$N4+Res1$N5)
-  Res2$total_int = (Res2$N1+Res2$N2+Res2$N3+Res2$N4+Res2$N5)
-  Res3$total_int = (Res3$N1+Res3$N2+Res3$N3+Res3$N4+Res3$N5)
-  Res4$total_int = (Res4$N1+Res4$N2+Res4$N3+Res4$N4+Res4$N5)
-  Res5$total_int = (Res5$N1+Res5$N2+Res5$N3+Res5$N4+Res5$N5)
+  } #end of iteration loop
   
   #Compiling results of birds that contacted all neighbors
+  completion<-data.frame(time = 1:runTime, completed = 0)
+  for (c in 1:runTime){
+    completion$completed[c] <- length(which(Results$date == Date & Results$done<=completion$time[c] & Results$done!=0))
+    completion$SingCnt[c] <- sum(Results$SingCnt[c])
+    completion$MoveCnt[c] <- sum(Results$MoveCnt[c])
+    completion$RestCnt[c] <- sum(Results$RestCnt[c])
+    completion$TotalInt[c] <- sum(Results$TotalInt[c])
+    completion$date = Date
+  } #end of completion loop
   
-  completion1<-data.frame(time = 1:runTime, completed = 0)
-  for (i in 1:runTime){
-    completion1$completed[i] <- length(which(Res1$done<=completion1$time[i] & Res1$done!=0))
-    completion1$SingCnt[i] <- sum(Res1$SingCnt[i])
-    completion1$MoveCnt[i] <- sum(Res1$MoveCnt[i])
-    completion1$RestCnt[i] <- sum(Res1$RestCnt[i])
-    completion1$TotalInt[i] <- sum(Res1$total_int[i])
-  }
-  completion1$percent <- completion1$completed/(iter/40)/cells
-  completion1$date = Date1
-  
-  completion2<-data.frame(time = 1:runTime, completed = 0)
-  for (i in 1:runTime){
-    completion2$completed[i] <- length(which(Res2$done<=completion2$time[i] & Res2$done!=0))
-    completion2$SingCnt[i] <- sum(Res2$SingCnt[i])
-    completion2$MoveCnt[i] <- sum(Res2$MoveCnt[i])
-    completion2$RestCnt[i] <- sum(Res2$RestCnt[i])
-    completion2$TotalInt[i] <- sum(Res2$total_int[i])
-  }
-  completion2$percent <- completion2$completed/(iter/40)/cells
-  completion2$date = Date2
-  
-  completion3<-data.frame(time = 1:runTime, completed = 0)
-  for (i in 1:runTime){
-    completion3$completed[i] <- length(which(Res3$done<=completion3$time[i] & Res3$done!=0))
-    completion3$SingCnt[i] <- sum(Res3$SingCnt[i])
-    completion3$MoveCnt[i] <- sum(Res3$MoveCnt[i])
-    completion3$RestCnt[i] <- sum(Res3$RestCnt[i])
-    completion3$TotalInt[i] <- sum(Res3$total_int[i])
-    
-  }
-  completion3$percent <- completion3$completed/(iter/40)/cells
-  completion3$date = Date3
-  
-  completion4<-data.frame(time = 1:runTime, completed = 0)
-  for (i in 1:runTime){
-    completion4$completed[i] <- length(which(Res4$done<=completion4$time[i] & Res4$done!=0))
-    completion4$SingCnt[i] <- sum(Res4$SingCnt[i])
-    completion4$MoveCnt[i] <- sum(Res4$MoveCnt[i])
-    completion4$RestCnt[i] <- sum(Res4$RestCnt[i])
-    completion4$TotalInt[i] <- sum(Res4$total_int[i])
-    }
-  completion4$percent <- completion4$completed/(iter/40)/cells
-  completion4$date = Date4
-  
-  completion5<-data.frame(time = 1:runTime, completed = 0)
-  for (i in 1:runTime){
-    completion5$completed[i] <- length(which(Res5$done<=completion4$time[i] & Res5$done!=0))
-    completion5$SingCnt[i] <- sum(Res5$SingCnt[i])
-    completion5$MoveCnt[i] <- sum(Res5$MoveCnt[i])
-    completion5$RestCnt[i] <- sum(Res5$RestCnt[i]) 
-    completion5$TotalInt[i] <- sum(Res5$total_int[i])
-    }
-  completion5$percent <- completion5$completed/(iter/40)/cells
-  completion5$date = Date5
-  
-    } #end of model for loop
+  if(d == 1) {
+    completions = completion
+  } else {
+    completions = rbind(completion, completions)
+  }#end of completions ifelse loop
+} #end of dates for loop
 
-  #Saving Completion Data
-  if(j == 1){
-    Results2011 = Results
-    completion_total_2011 = rbind(completion1,completion2,completion3,completion4,completion5)
-  } else if(j ==2){
-    Results2015 = Results
-    completion_total_2015 = rbind(completion1,completion2,completion3,completion4,completion5)
-  } else if(j==3){
-    Results2019 = Results
-    completion_total_2019 = rbind(completion1,completion2,completion3,completion4,completion5)
-    
-  } #end of years ifelse statement   
-} #end of years for loop
+completions$percent = completions$completed/(72*iter)
 
+# Results_final = Results %>%
+#   group_by(date,N) %>%
+#   dplyr::summarise(sumSingCnt = sum(SingCnt), 
+#                    sumMoveCnt = sum(MoveCnt), 
+#                    sumRestCnt = sum(RestCnt),
+#                    sumTotalInt = sum(TotalInt))
+# 
+# completions_final = completions %>%
+#   group_by(date,time) %>%
+#   dplyr::summarise(completed = sum(completed),
+#                    SingCnt = sum(SingCnt),
+#                    MoveCnt = sum(MoveCnt),
+#                    RestCnt = sum(RestCnt),
+#                    TotalInt = sum(TotalInt)
+#                    )
 #   
 # # Saving Results ----------------------------------------------------------
 # 
@@ -379,11 +303,10 @@ for(k in 1:iter) {
 setwd("/cloud/project/data_clean/normal/")
 #setwd("/cloud/project/data_clean/uniform_cc/")
 
-Results_normal = rbind(Results2011, Results2015, Results2019)
+Results_normal = Results
 # Results_normal$total_int = (Results_normal$N1+Results_normal$N2+Results_normal$N3+Results_normal$N4+Results_normal$N5)
 # attach(Results_normal)
 save(Results_normal, file = paste0("results_normal", ".Rdata"))
-detach(Results_normal)
 
 #Results_uniform_cc = rbind(Results2011, Results2015, Results2019)
 #save(Results_uniform_cc, file = paste0("results_uniform_cc", ".Rdata"))
@@ -391,7 +314,7 @@ detach(Results_normal)
 # Results_night_cc = rbind(Results2011, Results2015, Results2019)
 # save(Results_night_cc, file = paste0("results_night_cc", ".Rdata"))
 
-completion_normal = rbind(completion_total_2011, completion_total_2015, completion_total_2019)
+completion_normal = completions
 save(completion_normal, file = paste0("completion_normal", ".Rdata"))
 
 #completion_uniform_cc = rbind(completion_total_2011, completion_total_2015, completion_total_2019)

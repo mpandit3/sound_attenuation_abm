@@ -20,14 +20,17 @@ data2 = completion_normal #loading Completion data - summarized by time-step
 
 #Add year (year) to the dataframe
 data1$year = as.factor((substr(data1$date, 1,4))) #creates year vector from date
-data1$monthDay = as.factor(substr(data1$date, 6,10)) #creates month-day vector from date
+data1$month = as.factor(substr(data1$date, 6,7)) #creates month-day vector from date
+data1$day = as.factor(substr(data1$date,9,10))
+data1$monthDay = as.factor(substr(data1$date,6,10))
 
 data2$year = as.factor(substr(data2$date, 1,4)) #creates year vector from date
-data2$monthDay = as.factor(substr(data2$date, 6,10)) #creates month-day vector from date
-data2$actualPercent = data2$completed/576 #Calculating percent from the number of birds across the 8 iteractions for each monthDay
+data2$month = as.factor(substr(data2$date, 6,7)) #creates month-day vector from date
+data2$day = as.factor(substr(data2$date,9,10))
+data2$monthDay = as.factor(substr(data2$date,6,10))
 
 data1means = data1 %>% #Finds Means of data *cannot use dataframe name in dplyr!
-  group_by(monthDay, year) %>%
+  group_by(year) %>%
   dplyr::summarize(n = n(), #need to use dplyr:: because other libraries have the summarize function
                    SingCntMean = mean(SingCnt), 
                    SingCntSE = (sd(SingCnt)/sqrt(n)),
@@ -35,9 +38,9 @@ data1means = data1 %>% #Finds Means of data *cannot use dataframe name in dplyr!
                    MoveCntSE = (sd(MoveCnt)/sqrt(n)),
                    RestCntMean = mean(RestCnt),
                    RestCntSE = (sd(RestCnt)/sqrt(n)),
-                   TotalIntMean = mean(total_int),
-                   TotalIntSE = (sd(total_int)/sqrt(n))
-                   )
+                   TotalIntMean = mean(TotalInt),
+                   TotalIntSE = (sd(TotalInt)/sqrt(n))
+)
 
 # have 101 individuals in the dataframe
 # colnames(data1_means) = c("year", 
@@ -55,8 +58,20 @@ ggplot(data1means, aes(x=monthDay, y=SingCntMean, fill=year)) +
                 position=position_dodge(.9)) + 
   theme_classic()
 
-data2means = data2 %>% #Finds Means of data *cannot use dataframe name in dplyr!
-  group_by(year, monthDay) %>%
+ggplot(data1means, aes(x=monthDay, 
+                       y=SingCntMean, 
+                       color=year)) + 
+  geom_errorbar(aes(ymin=SingCntMean-SingCntSE, 
+                    ymax=SingCntMean+SingCntSE), 
+                width=.2,
+                position=position_dodge(.9)) + 
+  geom_line(position=position_dodge(.9)) +
+  geom_point(position=position_dodge(.9), size=3)+
+  theme_classic()
+
+data2means = data2 %>% 
+  filter(!is.na(SingCnt)) %>% #Finds Means of data *cannot use dataframe name in dplyr!
+  group_by(time,year) %>%
   dplyr::summarize(n = n(), #need to use dplyr:: because other libraries have the summarize function
                    SingCntMean = mean(SingCnt), 
                    SingCntSE = (sd(SingCnt)/sqrt(n)),
@@ -72,17 +87,34 @@ data2means = data2 %>% #Finds Means of data *cannot use dataframe name in dplyr!
                    PercentsE = (sd(percent)/sqrt(n))
   )
   
-ggplot(data2means, aes(x=monthDay, y=PercentMean, fill=year)) + 
+#Barplot to show means and SE of percent of individuals who completed for each year
+#need to calcualte means for each individual year
+ggplot(data2means, aes(x=year, y=PercentMean, fill=year)) + 
   geom_bar(stat="identity", position=position_dodge()) +
-  geom_errorbar(aes(ymin=PercentMean-PercentsE, ymax=PercentMean+PercentsE), width=.2,
+  geom_errorbar(aes(ymin=PercentMean-PercentsE, 
+                    ymax=PercentMean+PercentsE), 
+                width=.2,
                 position=position_dodge(.9)) + 
-  theme_classic()
+  theme_classic(base_size = 16)
+
+#Scatterplot demonstrating mean Percent completed across the 360 minute timeframe
+ggplot(data = data2means, 
+       aes(x=time, 
+           y=PercentMean, 
+           group=year, 
+           color = year)) +
+  geom_point()+
+  theme_classic(base_size = 48)
+
 
 ggplot(data2means, aes(x=monthDay, y=CompletedMean, fill=year)) + 
-  geom_bar(stat="identity", position=position_dodge()) +
-  geom_errorbar(aes(ymin=CompletedMean-CompletedSE, ymax=CompletedMean+CompletedSE), width=.2,
+  geom_bar(stat="identity", 
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=CompletedMean-CompletedSE, 
+                    ymax=CompletedMean+CompletedSE), 
+                width=.2,
                 position=position_dodge(.9)) + 
-  theme_classic()
+  theme_classic(base_size = 16)
 
 
 # Models ------------------------------------------------------------------
@@ -91,8 +123,9 @@ ggplot(data2means, aes(x=monthDay, y=CompletedMean, fill=year)) +
 hist(data1$SingCnt)
 hist(data1$MoveCnt)
 hist(data1$RestCnt)
-hist(data1$total_int)
+hist(data1$TotalInt)
 
+ad.test(data1$SingCnt)
 hist(log(data1$SingCnt))
 hist(log(data1$MoveCnt))
 hist(log(data1$RestCnt))
@@ -107,8 +140,8 @@ M1 = lmer(log(SingCnt) ~ year + (1|monthDay/N), data = data1)
 tt <- getME(M1,"theta")
 ll <- getME(M1,"lower")
 min(tt[ll==0])
-summary(M1.5)
-anova(M1.5)
+summary(M1)
+anova(M1)
 
 M2 = glmer(MoveCnt ~ year + (1|monthDay/N), data = data1, family = poisson)
 summary(M2)
@@ -133,19 +166,19 @@ anova(M6)
 # Graphs ------------------------------------------------------------------
 ###Graph for Sing Count
 #Violin Plot
-ggplot(data = data1, aes(x=year, y=SingCntMean, group=year, color = year)) +
+ggplot(data = data1, aes(x=year, y=SingCnt, group=year, color = year)) +
   geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))+
   theme_classic()
 
 #Bar Graph
-ggplot(data1means, aes(x=monthDay, y=SingCntMean, fill=year)) + 
+ggplot(data1means, aes(x=year, y=SingCntMean, fill=year)) + 
   geom_bar(stat="identity", position=position_dodge()) +
   geom_errorbar(aes(ymin=SingCntMean-SingCntSE, ymax=SingCntMean+SingCntSE), width=.2,
-                position=position_dodge(.9)) + 
-  theme_classic()
+                position=position_dodge(0)) + 
+  theme_classic(base_size = 48)
 
 #Line Graph
-ggplot(data1means, aes(x=monthDay, y=SingCntMean, color=year)) + 
+ggplot(data1means, aes(x=year, y=SingCntMean, color=year)) + 
   geom_point() +
   geom_errorbar(aes(ymin=SingCntMean-SingCntSE, 
                     ymax=SingCntMean+SingCntSE), 
@@ -154,47 +187,51 @@ ggplot(data1means, aes(x=monthDay, y=SingCntMean, color=year)) +
 
 ###Graph for Move Count
 #Violing Plot
-ggplot(data = data1means, aes(x=year, y=MoveCntMean, group=year, color = year)) +
+ggplot(data = data1, aes(x=year, y=MoveCnt, group=year, color = year)) +
   geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))+
   theme_classic()
 
+
 #Bar Graph
-ggplot(data1means, aes(x=monthDay, y=MoveCntMean, fill=year)) + 
+ggplot(data1means, aes(x=year, y=MoveCntMean, fill=year)) + 
   geom_bar(stat="identity", position=position_dodge()) +
   geom_errorbar(aes(ymin=MoveCntMean-MoveCntSE, ymax=MoveCntMean+MoveCntSE), width=.2,
                 position=position_dodge(.9)) + 
-  theme_classic()
+  theme_classic(base_size = 48)
 
 ###Graph for Rest Count
 #Violin Plot across years
-ggplot(data = data1means, aes(x=year, y=RestCntMean, group=year, color = year)) +
+ggplot(data = data1, aes(x=year, y=RestCnt, group=year, color = year)) +
   geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))+
   theme_classic()
 
 #Bar Graph
-ggplot(data1means, aes(x=monthDay, y=RestCntMean, fill=year)) + 
+ggplot(data1means, aes(x=year, y=RestCntMean, fill=year)) + 
 geom_bar(stat="identity", position=position_dodge()) +
   geom_errorbar(aes(ymin=RestCntMean-RestCntSE, ymax=RestCntMean+RestCntSE), width=.2,
                 position=position_dodge(.9)) + 
-  theme_classic()
+  theme_classic(base_size = 48)
 
 ###Graph for Number of total Interactions
 #Scatterplot
-ggplot(data = data1means, aes(x=time, y=TotalIntMean, group=year, color = year)) +
+ggplot(data = data1means, aes(x=year, y=TotalIntMean, group=year, color = year)) +
   geom_point()+
+  geom_line()+
+  geom_errorbar(aes(ymin=TotalIntMean-TotalIntSE, ymax=TotalIntMean+TotalIntSE), width=0.5,
+                position=position_dodge(0)) + 
   theme_classic()
 
 #Violin Plot
-ggplot(data = data1means, aes(x=year, y=TotalIntMean, group=year, color = year)) +
+ggplot(data = data1, aes(x=year, y=TotalInt, group=year, color = year)) +
   geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))+
   theme_classic()
 
 #Bar Graph
-ggplot(data1means, aes(x=monthDay, y=TotalIntMean, fill=year)) + 
+ggplot(data1means, aes(x=year, y=TotalIntMean, fill=year)) + 
   geom_bar(stat="identity", position=position_dodge()) +
   geom_errorbar(aes(ymin=TotalIntMean-TotalIntSE, ymax=TotalIntMean+TotalIntSE), width=.2,
                 position=position_dodge(.9)) + 
-  theme_classic()
+  theme_classic(base_size = 48)
 
 
 #Graph for Number of Individuals who successfully contacted all neighbors
@@ -202,21 +239,8 @@ ggplot(data = data2, aes(x=time, y=completed, group=year, color = year)) +
   geom_point()+
   theme_classic()
 
-#Graph for Percent of Individuals who successfully contacted all neighbors
-ggplot(data = data2, aes(x=time, y=percent, group=year, color = year)) +
-  geom_point()+
-  theme_classic()
+#Graph for total number of interactions overr time frame
+ggplot(data = data2means, aes(x=time, y=TotalIntMean, group=year, color = year)) +
+  geom_point(size = 5)+
+  theme_classic(base_size = 48)
 
-
-#Graph for completed of Individuals/808 (number of individuals who have 6 neighbors) 
-#who successfully contacted all neighbors
-ggplot(data = data2, aes(x=time, y=actualPercent, group=year, color = year)) +
-  geom_point()+
-  theme_classic()
-
-#Graph for completed of Individuals/101 (number of individuals who have 6 neighbors) 
-#who successfully contacted all neighbors
-ggplot(data = data2, aes(x=time, y=TotalInt, group=year, color = year)) +
-  geom_point()+
-  geom_smooth(method = "lm") +
-  theme_classic()
