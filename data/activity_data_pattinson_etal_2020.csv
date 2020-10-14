@@ -1,0 +1,117 @@
+Region,Name,wing50,pant50,rest50,shade50,prop_act,logit_prop_act,LogMb,Forage guild,guild,plant.animal.omn,diet,watersource
+US,Ash-throated flycatcher (Myiarchus cinerascens),35.28110195,41.36000867,23.66456267,31.53250673,0.020833333,-1.672097858,1.450249108,SW,Off-ground,INS,animal,P
+US,Black-tailed Gnatcatcher (Polioptila melanura),37.4407553,42.62427511,49.55465493,27.88398307,0.635714286,0.241819831,0.716003344,AG,Off-ground,INS,animal,P
+US,Black-throated sparrow (Amphispiza bilineata),38.4421729,43.00676638,,30.9357515,0.121212121,-0.860338007,1.146128036,TG,On-ground,OMN,omn,P
+US,Brown-crested flycatcher (Myiarchus tyrannulus),34.96139255,,,29.16210436,0.111111111,-0.903089987,1.641474111,SW,Off-ground,INS,animal,P
+US,Cactus wren (Campylorhynchus brunneicapillus),38.13582588,41.28360245,,26.78123654,0.344827586,-0.278753601,1.589949601,TG,On-ground,INS,animal,P
+US,Crissal thrasher (Toxostoma crissale),35.65537704,38.49715965,36.90039841,,0.307692308,-0.352182518,1.797267541,TG,On-ground,INS,animal,P
+US,Curve-billed thrasher (Toxostoma curvirostre),36.35194063,36.67101106,26.64770761,29.00771227,0.204081633,-0.591064607,1.894869657,TG,On-ground,INS,animal,P
+US,Gambel's quail (Callipepla gambelii),51.35466179,43.7373089,32.61366748,29.74313853,0.254901961,-0.465840244,2.228656958,TG,On-ground,GRA,plant,D
+US,Gila woodpecker (Melanerpes uropygialis),37.1753518,33.34713465,,29.58690412,0.173913044,-0.67669361,1.832508913,AG,Off-ground,OMN,omn,P
+US,Gilded flicker (Colaptes chrysoides),34.15940856,36.27445394,,33.92639225,0.01,-1.995635195,2.045322979,TG,On-ground,INS,animal,P
+US,Greater roadrunner (Geococcyx californianus),38.01060147,,33.19190459,,0.01,-1.995635195,2.501470072,TG,On-ground,OMN,omn,P
+US,House finch (Carpodacus mexicanus),,,,,0.166666667,-0.698970004,1.330413773,TG,On-ground,OMN,omn,D
+US,Ladder-backed woodpecker (Picoides scalaris),32.70464712,,,,0.01,-1.995635195,1.481442629,AG,Off-ground,INS,animal,D
+US,Loggerhead shrike (Lanius ludovicianus),37.02620524,44.88628599,,33.06362133,0.090909091,-1,1.678518379,SW,Off-ground,CAR,animal,P
+US,Mourning dove (Zenaida macroura),38.78251845,,,,0.01,-1.995635195,2.102090526,TG,On-ground,GRA,plant,D
+US,Verdin (Auriparus flaviceps),38.34117498,38.50094287,33.43379461,29.50778434,0.445414847,-0.095203549,0.799340549,AG,Off-ground,INS,animal,P
+US,White-winged dove (Zenaida asiatica),42.65638966,49.12154586,,37.95852309,0.01,-1.995635195,2.184691431,AG,Off-ground,FRU,plant,D
+US,American kestrel (Falco sparverius),,,,35.60709851,0.01,-1.995635195,2.06069784,SW,Off-ground,OMN,omn,P
+AUS,Australian Ringneck Parrot (Barnardius zonarius),31.81295392,26.10097493,,29.19338768,0.2,-0.602059991,2.23,TG,On-ground,GRA,plant,D
+AUS,Black-faced Woodswallow (Artamus cinereus),34.17345553,38.80997625,,,0.24137931,-0.497324641,1.54,AF,Off-ground,INS,animal,P
+AUS,Budgerigar (Melopsittacus undulatus),39.17659848,,,,0.333333333,-0.301029996,1.48,,On-ground,GRA,plant,D
+AUS,Chestnut-rumped Thornbill (Acanthiza uropygialis),38.86370023,41.3662842,,21.18194509,0.928571429,1.113943352,0.78,AG,Off-ground,INS,animal,P
+AUS,Cockatiel (Nymphicus hollandicus),,,,34.50524818,0.99,1.995635195,1.97,,On-ground,GRA,plant,D
+AUS,Crested Bellbird (Oreoica gutturalis),,37.3643057,,,0.346153846,-0.276206412,1.8,TG,On-ground,INS,animal,P
+AUS,Crested Pigeon (Ocyphaps lophotes),,,28.55861071,41.41658723,0.1875,-0.636822098,2.32,TG,On-ground,GRA,plant,D
+AUS,Diamond Dove (Geopelia cuneata),,,30.47537728,,0.148148148,-0.759667845,1.52,TG,On-ground,GRA,plant,D
+AUS,Galah (Cacatua roseicapilla),29.26362735,42.82099163,30.26037429,34.32380429,0.090909091,-1,2.52,TG,On-ground,GRA,plant,D
+AUS,Grey Butcherbird (Cracticus torquatus),36.54698201,,33.39906279,,0.125,-0.84509804,2,SW,Off-ground,CAR,animal,P
+AUS,Grey Shrike-thrush (Colluricincla harmonica),38.24349125,39.29314421,37.52076292,,0.454545455,-0.079181246,1.81,TG,On-ground,INS,animal,P
+AUS,Grey-crowned Babbler (Pomatostomus temporalis),35.05528826,40.17364813,39.653796,,0.785714286,0.56427143,1.81,TG,On-ground,INS,animal,P
+AUS,Hooded Robin (Melanodryas cucullata),,,,39.21308159,0.2,-0.602059991,1.34,,Off-ground,INS,animal,P
+AUS,Masked Woodswallow (Artamus personatus),37.49402093,40.23398652,,35.22371207,0.153846154,-0.740362689,1.57,AF,Off-ground,INS,animal,P
+AUS,Nankeen Kestrel (Falco cenchroides),32.35942025,,,,0.01,-1.995635195,2.24,,Off-ground,ANI,animal,P
+AUS,Pied Butcherbird (Cracticus nigrogularis),,41.69379691,,,0.99,1.995635195,2.08,,Off-ground,ANI,animal,P
+AUS,Red-capped Robin (Petroica goodenovii),36.82741617,39.57017596,32.79706601,,0.142857143,-0.77815125,0.95,TG,On-ground,INS,animal,P
+AUS,Redthroat (Pyrrholaemus brunneus),,39.30264979,,,0.933333333,1.146128036,1.08,TG,On-ground,INS,animal,P
+AUS,Rufous Whistler (Pachycephala rufiventris),36.17077922,,,,0.322580645,-0.322219295,1.4,AG,Off-ground,INS,animal,P
+AUS,Singing Honeyeater (Lichenostomus virescens),37.77098414,41.16651943,,25.13045032,0.764705882,0.511883361,1.41,AG,Off-ground,NEC/INS,plant,D
+AUS,Slaty-backed Thornbill (Acanthiza robustirostris),38.68094793,40.23087195,,26.4204236,0.894736842,0.929418926,0.78,AG,Off-ground,INS,animal,P
+AUS,Southern Whiteface (Aphelocephala leucopsis),34.33981801,39.75044883,,,0.7,0.367976785,1,TG,On-ground,INS,animal,P
+AUS,Spiny-cheeked Honeyeater (Acanthagenys rufogularis),38.16249487,37.98560329,40.32252179,,0.631578947,0.234083206,1.72,AG,Off-ground,NEC,plant,D
+AUS,Splendid Fairywren (Malurus splendens),40.26148512,39.234,42.10919801,,0.888888889,0.903089987,1,TG,On-ground,INS,animal,P
+AUS,Varied Sittella (Daphoenositta chrysoptera),35.25056148,,,32.25072369,0.01,-1.995635195,1.11,,Off-ground,ANI,animal,P
+AUS,Variegated Fairywren (Malurus lamberti),38.21344435,39.57350565,41.69616166,24.84290902,0.923076923,1.079181246,1,TG,On-ground,INS,animal,P
+AUS,White-plumed Honeyeater (Lichenostomus penicillatus),37.70127833,39.15357143,38.4757773,43.82715557,0.5,0,1.28,AG,Off-ground,NEC/INS,plant,D
+AUS,White-winged Fairywren (Malurus leucopterus),34.32906521,37.40330387,,,0.666666667,0.301029996,1,TG,On-ground,INS,animal,P
+AUS,Willie Wagtail (Rhipidura leucophrys),36.04659189,,40.81132075,,0.580645161,0.141329153,1.26,TG,On-ground,INS,animal,P
+AUS,Zebra Finch (Taeniopygia guttata),41.20591658,37.12502575,,30.94213021,0.540540541,0.070581074,1.08,TG,On-ground,GRA,plant,D
+SA,Acacia Pied Barbet (Tricholaema leucomelas),36.18774704,34.42580645,,30.08823529,0.535714286,0.062147907,1.505149978,ARB,Off-ground,OMN,omn,D
+SA,African Hoopoe (Upupa africana),,,,,0.4,-0.176091259,1.755874856,TER,On-ground,ANI,animal,P
+SA,African Red-eyed Bulbul (Pycnonotus nigricans),39.37762238,33.88741722,,,0.666666667,0.301029996,1.488550717,ARB,Off-ground,OMN,omn,D
+SA,Anteating Chat (Myrmecocichla formicivora),40.58085809,45.67248908,6.720930233,53.98863636,0.059405941,-1.199572352,1.677606953,ARB,Off-ground,ANI,animal,P
+SA,Ashy Tit (Parus cinerascens),42.14529915,39.4522293,38.03937008,20.72789116,0.533333333,0.057991946,1.309630167,ARB,Off-ground,ANI,animal,P
+SA,Black-chested Prinia (Prinia flavicans),41.11937378,39.5639881,,30.64171123,0.789473684,0.574031267,0.949390007,ARB,Off-ground,ANI,animal,P
+SA,Black-throated Canary (Crithagra atrogularis),,,,,0.99,1.995635195,1.103803721,TER,On-ground,GRA,plant,D
+SA,Bokmakierie (Telophorus zeylonus),37.80769231,,,,0.99,1.995635195,1.812913357,TER,On-ground,ANI,animal,P
+SA,Brown-crowned Tchagra (Tchagra australis),,,,,0.666666667,0.301029996,1.544068044,TER,Off-ground,ANI,animal,P
+SA,Brubru (Nilaus afer),,,,,0.428571429,-0.124938736,1.380211242,ARB,Off-ground,ANI,animal,P
+SA,Cape Glossy Starling (Lamprotornis nitens),38.55086849,37.86646884,,31.12621359,0.172413793,-0.681241238,1.916453949,TER,On-ground,OMN,omn,D
+SA,Cape Sparrow (Passer melanurus),36.69932432,36.83261803,,30.87364621,0.666666667,0.301029996,1.469822016,TER,On-ground,GRA,plant,D
+SA,Cape Turtle-Dove (Streptopelia capicola),44.63876652,40.34505495,7.540983607,14.18095238,0.166666667,-0.698970003,2.114944416,TER,On-ground,GRA,plant,D
+SA,Capped Wheatear (Oenanthe pileata),,,,,0.001,-2.999565488,1.397940009,TER,On-ground,ANI,animal,P
+SA,Cardinal Woodpecker (Dendropicos fuscescens),,,,,0.001,-2.999565488,1.477121255,ARB,Off-ground,ANI,animal,P
+SA,Chat Flycatcher (Bradornis infuscatus),35.30974843,,,,0.25,-0.477121255,1.568201724,ARB,Off-ground,ANI,animal,P
+SA,Chestnut-vented Tit-Babbler (Sylvia subcaerulea),39.51606426,40.29525862,,21.03468208,0.838709677,0.716003342,1.195899652,ARB,Off-ground,ANI,animal,P
+SA,Common Fiscal (Lanius collaris subcoronatus),38.44074844,41.28616352,,35.7400722,0.2,-0.602059991,1.610660163,ARB,Off-ground,ANI,animal,P
+SA,Common Scimitarbill (Rhinopomastus cyanomelas),37.6060241,36.49100719,,24.8203125,0.714285714,0.397940008,1.511883361,ARB,On-ground,ANI,animal,P
+SA,Crimson-breasted Shrike (Laniarius atrococcineus),38.1299639,38.39375,,,0.448275862,-0.09017663,1.683947131,TER,On-ground,ANI,animal,P
+SA,Crowned Lapwing (Vanellus coronatus),,39.00639659,26.46825397,27.95532646,0.166666667,-0.698970003,2.290034611,TER,On-ground,ANI,animal,P
+SA,Diderick cuckoo (Chrysococyx cupreas),,,,,0.4,-0.176091259,1.563481085,ARB,Off-ground,ANI,animal,P
+SA,Dusky Sunbird (Nectarinia fusca),37.19784173,37.39341693,,34.18918919,0.99,1.995635195,0.977723605,ARB,Off-ground,OMN,omn,P
+SA,Eastern Clapper Lark (Mirafra apiata),,,,,0.4,-0.176091259,1.477121255,TER,On-ground,OMN,omn,P
+SA,Familiar Chat (Cercomela familiaris),,,,,0.001,-2.999565488,1.342422681,ARB,Off-ground,ANI,animal,P
+SA,Fawn-coloured Lark (Mirafra africanoides),38.22846442,46.01570681,,37.52666667,0.259259259,-0.455931956,1.367355921,TER,On-ground,OMN,omn,P
+SA,Fork-tailed Drongo (Dicrurus adsimilis),39.15162907,42.60634921,,29.47488584,0.01,-1.995635195,1.641474111,ARB,Off-ground,ANI,animal,P
+SA,Green-winged Pytilia (Pytilia melba),,,,,0.99,1.995635195,1.176091259,TER,On-ground,GRA,plant,D
+SA,Grey-backed Sparrowlark (Eremopterix verticalis),,,,,0.888888889,0.903089987,1.230448921,TER,On-ground,GRA,plant,D
+SA,Groundscraper Thrush (Psophocichla litsitsirupa),,,,,0.2,-0.602059991,1.881384657,TER,On-ground,ANI,animal,P
+SA,Jacobin Cuckoo (Clamator jacobinus),,,,,0.25,-0.477121255,1.919078092,ARB,On-ground,ANI,animal,P
+SA,Kalahari Scrub-Robin (Erythropygia paena),40.32831325,42.83611111,,31.33070866,0.245454545,-0.487714329,1.294466226,TER,On-ground,ANI,animal,P
+SA,Kori Bustard (Ardeotis kori),,,,,0.001,-2.999565488,3.956648579,TER,On-ground,OMN,omn,P
+SA,Lark-like Bunting (Emberiza impetuani),,,30.49888641,,0.142857143,-0.77815125,1.176091259,TER,On-ground,GRA,plant,D
+SA,Laughing Dove (Streptopelia senegalensis),37.16224189,39.14300847,25.66393443,29,0.060606061,-1.190331695,1.994756945,TER,On-ground,GRA,plant,D
+SA,Lesser Grey Shrike (Lanius minor),37.01716069,,,35.856,0.148148148,-0.759667845,1.662757832,ARB,Off-ground,ANI,animal,P
+SA,Lilac-breasted Roller (Coracias caudatus),,40.40944882,,,0.05,-1.278753601,2.031408464,ARB,Off-ground,ANI,animal,P
+SA,Long-billed Crombec (Sylvietta rufescens),,,,,0.8,0.602059991,1.045322979,ARB,Off-ground,ANI,animal,P
+SA,Marico Flycatcher (Bradornis mariquensis),39.09302326,41.79909707,10.93902439,28.11976048,0.114583333,-0.888026242,1.418301291,ARB,Off-ground,ANI,animal,P
+SA,Namaqua Dove (Oena capensis),44.52601156,46.03047091,,34.54929577,0.35,-0.268845312,1.600972896,TER,On-ground,GRA,plant,D
+SA,Namaqua Sandgrouse (Pterocles namaqua),,,,,0.99,1.995635195,2.256477206,TER,On-ground,GRA,plant,D
+SA,Northern Black Korhaan (Eupodotis afraoides),,,29.79574468,33.35829662,0.090909091,-1,2.868644438,TER,On-ground,OMN,omn,P
+SA,Pearl-spotted Owlet (Glaucidium perlatum),,,,,0.25,-0.477121255,1.875061263,ARB,Off-ground,ANI,animal,P
+SA,Pririt Batis (Batis pririt),,,,,0.47826087,-0.03778856,0.968482949,ARB,Off-ground,ANI,animal,P
+SA,Pygmy Falcon (Polihierax semitorquatus),38.31421446,39.12707182,,36.17664671,0.043478261,-1.342422679,1.781755375,ARB,Off-ground,ANI,animal,P
+SA,Red-backed Shrike (Lanius collurio),37.63711002,,,,0.263157895,-0.447158031,1.460897843,ARB,Off-ground,ANI,animal,P
+SA,Red-crested Korhaan (Eupodotis ruficrista),,,29.96428571,30.45798319,0.25,-0.477121255,2.828981954,TER,On-ground,OMN,omn,P
+SA,Red-faced Mousebird (Urocolius indicus),,,,27.59670782,0.5,0,1.752048448,ARB,Off-ground,FRU,plant,D
+SA,Sabota Lark (Mirafra sabota),,,,,0.666666667,0.301029996,1.397940009,TER,On-ground,OMN,omn,P
+SA,Scaly-feathered Weaver (Sporopipes squamifrons),39.33033033,41.43664717,29.26470588,30.21276596,0.333333333,-0.301029996,1.045322979,TER,On-ground,GRA,plant,P
+SA,Shaft-tailed Whydah (Vidua regia),,,,,0.25,-0.477121255,1.155336037,TER,On-ground,GRA,plant,D
+SA,Sociable Weaver (Philetairus socius),39.1027668,42.1557971,33.59016393,28.58083832,0.483870968,-0.028028723,1.437750563,TER,On-ground,OMN,omn,P
+SA,Southern Grey-headed Sparrow (Passer diffusus),,,,,0.01,-1.995635195,1.392696953,TER,On-ground,GRA,plant,D
+SA,Southern Masked-Weaver (Ploceus velatus),42.31803279,37.89274448,,33.36551724,0.631578947,0.234083205,1.31386722,TER,On-ground,OMN,omn,D
+SA,Southern Pale Chanting Goshawk (Melierax canorus),39.68164313,,,,0.01,-1.995635195,2.914871818,ARB,Off-ground,ANI,animal,P
+SA,Southern Yellow-billed Hornbill (Tockus leucomelas),,36.76162791,,27.18811881,0.01,-1.995635195,2.277609214,TER,On-ground,OMN,omn,P
+SA,Spike-heeled Lark (Chersomanes albofasciata),36.02,35.86178862,,38.61702128,0.285714286,-0.397940008,1.403120521,TER,On-ground,OMN,omn,P
+SA,Spotted Eagle-Owl (Bubu africanus),,,,,0.001,-2.999565488,2.77815125,ARB,Off-ground,ANI,animal,P
+SA,Spotted Flycatcher (Muscicapa striata),,,,,0.333333333,-0.301029996,1.176091259,ARB,Off-ground,OMN,omn,P
+SA,Spotted Thick-knee (Burhinus capensis),,,,,0.01,-1.995635195,2.674125983,TER,On-ground,ANI,animal,D
+SA,Swallow-tailed Bee-eater (Merops hirundineus),,,,,0.068965517,-1.13033377,1.301029996,ARB,Off-ground,ANI,animal,P
+SA,Verreaux's Eagle-Owl (Bubu lacteus),,,,,0.001,-2.999565488,3.397940009,ARB,Off-ground,ANI,animal,P
+SA,Violet-eared Waxbill (Granatina granatina),,,,,0.75,0.477121255,1.071882007,TER,On-ground,GRA,plant,D
+SA,Wattled Starling (Creatophora cinerea),36.08641975,34.88429752,,,0.2,-0.602059991,1.86332286,TER,On-ground,OMN,omn,D
+SA,White-backed Mousebird (Colius colius),36.37662338,34.47923875,30.91935484,28.22807018,0.277777778,-0.414973347,1.602059991,ARB,Off-ground,FRU,plant,D
+SA,White-browed Sparrow-Weaver (Plocepasser mahali),38.55508475,41.68852459,28.67307692,28.31318681,0.207207207,-0.582754837,1.67669361,TER,On-ground,OMN,omn,P
+SA,Yellow Canary (Serinus flaviventris),,39.52054795,,31,0.384615385,-0.204119982,1.243038049,ARB,On-ground,GRA,plant,D
+SA,Yellow-bellied Eremomela (Eremomela icteropygialis),42.17422434,41.19877049,,23.60714286,0.871794872,0.832508914,0.897627091,ARB,Off-ground,ANI,animal,P

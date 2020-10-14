@@ -25,7 +25,7 @@ for(i in 1:length(years)){ #beginning of weather data loop
     endTime = "2019-06-30 23:55"
   }
   stid <- "ERIC"
-  stations <- read.csv("/cloud/project/geoinfo.csv", stringsAsFactors = F)
+  stations <- read.csv("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/geoinfo.csv", stringsAsFactors = F)
   lat = stations$nlat[which(stations$stid == stid)]
   lon = stations$elon[which(stations$stid == stid)]
   
@@ -83,7 +83,28 @@ for(i in 1:length(years)){ #beginning of weather data loop
   wd$bins <- cut(wd$MAS,seq(0,1440,5), labels = labels, right = FALSE)               #make 5 minute bins
   wd$bins <- as.numeric(as.character(wd$bins))
   wd$DEW <- wd$TAIR-((100-wd$RELH)/5)
-  #wd$futureTAIR = wd$TAIR+3
+
+  wd = wd %>%
+    filter(!is.na(TAIR)) %>%
+    filter(!is.na(bins))
+  
+  wd$tewl = 0 #total evaporative water loss increases until it reaches 4.9
+  wd$ewl = NULL
+  for(j in 1:length(wd$bins)){
+    
+      wd$ewl[j] = (0.0045*exp((0.1511*(wd$TAIR[j]))))/12 #ewl equation divided by 12 to account for the 5 min bins, using linear equation from HOFI since they are similar mass
+      # wd$tewl = wd$tewl[j]+wd$ewl[j]
+    if(j == 1){
+      wd$tewl[j] = 0 + wd$ewl[j]
+    } else {
+      wd$tewl[j] = wd$tewl[j-1]+wd$ewl[j]
+    }
+    if(wd$bins[j] == 0){
+      wd$tewl[j] = 0
+    } else{
+      
+    }
+}
   
   wdsum <- data.frame(bin1 = wd$bins, 
                       bin2 = wd$bins+5,
@@ -96,7 +117,9 @@ for(i in 1:length(years)){ #beginning of weather data loop
                       TAIR = wd$TAIR,
                       #fTAIR = wd$futureTAIR, 
                       RELH = wd$RELH, 
-                      PRES = wd$PRES)
+                      PRES = wd$PRES,
+                      EWL = wd$ewl,
+                      TEWL = wd$tewl)
   
   if(i == 1){
     wdsum$model = "hot"
@@ -119,7 +142,7 @@ for(i in 1:length(years)){ #beginning of weather data loop
 } #end of weather data loop
 
 #Use station ID to access folder and get a list of data files
-setwd("/cloud/project/data/ERIC_weather_normal/")
+setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_normal")
 fname = paste0(stid, "_weather_normal")
 file_list <- as.list(list.files(fname))
 
@@ -134,12 +157,12 @@ save(wdsum, file = paste0(fname, ".Rdata"))
 # #wd <- wd[wd$MAS<6*60,] #subset to sunrise data only
 
 #Graph some data.
-load("/cloud/project/data/ERIC_weather_normal/ERIC_weather_normal.Rdata") #Load wdsum data so you do not need to run code again:
+load("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_normal/ERIC_weather_normal.Rdata") #Load wdsum data so you do not need to run code again:
 
 Song_volume = 85
 Song_detection = 30
 Song_freq = 7000
-source("/cloud/project/src/Atmospheric_sound_attenuation.R")
+source("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/src/Atmospheric_sound_attenuation.R")
 wdsum$CallRad <- mapply(aud_range,Song_volume,Song_detection,Song_freq,wdsum$TAIR,wdsum$RELH,wdsum$PRES)
 wdtemp <- wdsum[which(wdsum$bin1<=600),]
 wdtemp$dateLocal <- as.factor(wdtemp$dateLocal )

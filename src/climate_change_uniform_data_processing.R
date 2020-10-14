@@ -85,6 +85,7 @@ for(i in 1:length(years)){ #beginning of weather data loop
   wd$bins <- as.numeric(as.character(wd$bins))
   wd$DEW <- wd$TAIR-((100-wd$RELH)/5)
   wd$futureTAIR = wd$TAIR+3
+  wd$futureRH = wd$RH-1
   
   wdsum <- data.frame(bin1 = wd$bins, 
                       bin2 = wd$bins+5,
@@ -94,8 +95,8 @@ for(i in 1:length(years)){ #beginning of weather data loop
                       dayLocal = substr(wd$YMDL, 9,10),
                       year = substr(wd$YMDL,1,4),
                       DEW = wd$DEW,
-                      #TAIR = wd$TAIR,
-                      fTAIR = wd$futureTAIR, 
+                      TAIR = wd$futureTAIR,
+                      #fTAIR = wd$futureTAIR, 
                       RELH = wd$RELH, 
                       PRES = wd$PRES)
   
@@ -135,7 +136,9 @@ save(wdsum, file = paste0(fname, ".Rdata"))
 # #wd <- wd[wd$MAS<6*60,] #subset to sunrise data only
 
 #Graph some data.
-load("/cloud/project/data/ERIC_weather_normal/ERIC_weather_cc_uniform.Rdata") #Load wdsum data so you do not need to run code again:
+load("~/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_052420/data/ERIC_weather_normal/ERIC_weather_normal.Rdata") #Load wdsum data so you do not need to run code again:
+
+load("~/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_052420/data/ERIC_weather_cc_uniform/ERIC_weather_cc_uniform.Rdata") #Load wdsum data so you do not need to run code again:
 
 Song_volume = 85
 Song_detection = 30
@@ -145,16 +148,68 @@ wdsum$CallRad <- mapply(aud_range,Song_volume,Song_detection,Song_freq,wdsum$TAI
 wdtemp <- wdsum[which(wdsum$bin1<=600),]
 wdtemp$dateLocal <- as.factor(wdtemp$dateLocal )
 
+levels(wdtemp$year)[1] = "2081"
+levels(wdtemp$year)[2] = "2085"
+levels(wdtemp$year)[3] = "2089"
+
 wmeans = wdtemp %>% #Finds Means of data *cannot use dataframe name in dplyr!
-  group_by(model, bin1) %>%
+  rename(TAIR = fTAIR) %>%
+  filter(!is.na(TAIR)) %>%
+  group_by(year) %>%
   dplyr::summarize(n = n(), #need to use dplyr:: because other libraries have the summarize function
-                   CallRadMean = mean(CallRad), 
-                   CallRadSE = (sd(CallRad)/sqrt(n)),
+                   # CallRadMean = mean(CallRad), 
+                   # CallRadSE = (sd(CallRad)/sqrt(n)),
                    TAIRMean = mean(TAIR),
+                   TAIRSe = (sd(TAIR)/sqrt(n)),
                    RELHMean = mean(RELH),
+                   RELHSe = (sd(RELH)/sqrt(n)),
                    PRESMean = mean(PRES),
-                   DEWMean = mean(DEW)
+                   PRESSe = (sd(PRES)/sqrt(n)),
+                   DEWMean = mean(DEW),
+                   DEWSe = (sd(DEW)/sqrt(n))
   )
+
+tair_bar = ggplot(wmeans, aes(x=year, y = TAIRMean, fill=year)) + 
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=TAIRMean-TAIRSe, ymax=TAIRMean+TAIRSe), 
+                width=.5,
+                position=position_dodge(.9)) + 
+  scale_y_continuous(name = "Mean Air \nTemp. (°C)") +
+  #coord_cartesian(ylim = c(75,110)) +
+  scale_fill_manual(values = cbPalette)+
+  theme_classic(base_size = 48)+
+  theme(legend.position = "top");tair_bar
+
+relh_bar = ggplot(wmeans, aes(x=year, y = RELHMean, fill=year)) + 
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=RELHMean-RELHSe, ymax=RELHMean+RELHSe), 
+                width=.5,
+                position=position_dodge(.9)) + 
+  scale_y_continuous(name = "Mean Rel. \nHumid. (%)") +
+  #coord_cartesian(ylim = c(75,110)) +
+  scale_fill_manual(values = cbPalette)+
+  theme_classic(base_size = 48)+
+  theme(legend.position = "none");relh_bar
+
+pres_bar = ggplot(wmeans, aes(x=year, y = PRESMean, fill=year)) + 
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=PRESMean-PRESSe, ymax=PRESMean+PRESSe), 
+                width=.5,
+                position=position_dodge(.9)) + 
+  scale_y_continuous(name = "Mean Air \nPres. (Pa)") +
+  #coord_cartesian(ylim = c(75,110)) +
+  scale_fill_manual(values = cbPalette)+
+  theme_classic(base_size = 48)+
+  theme(legend.position = "none",
+        axis.title.x = element_text(vjust = -10));pres_bar
+
+library(egg)
+egg::ggarrange(tair_bar,relh_bar,pres_bar, heights = c(1,1,1))
+
+
+grid.arrange(tair_bar,relh_bar,pres_bar, ncol = 1)
+
+
 ggplot( data = wmeans, aes(x=bin1, y=CallRadMean, group=model, color = model)) +
   geom_line()+
   theme_classic()

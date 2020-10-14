@@ -22,6 +22,37 @@ library(plotrix)
 library(ggplot2)
 library(dplyr)
 
+##Which model are you running?
+
+m=0 #0 for normal data, 
+    #1 for uniform climate change, 
+    #2 for asymmetric increases in nighttime temperatures, 
+    #3 for increases in temperature and decreases in relh
+
+if(m == 0){
+  setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data_clean/normal")
+  
+  wdata = "C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_normal/ERIC_weather_normal.Rdata"
+  
+} else if(m == 1){
+  setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data_clean/uniform_cc")
+  wdata = "C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_cc_uniform/ERIC_weather_cc_uniform.Rdata" #Uniform Climate Change Data
+  
+} else if (m == 2){
+  setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data_clean/nighttime_cc")
+  
+  wdata = "C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_cc_nighttime/ERIC_weather_cc_nighttime.Rdata"
+  
+} else if (m==3){
+  setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data_clean/cc_aridity")
+  
+  wdata = "C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_tair_relh_increase/ERIC_weather_tair_relh_increase.Rdata"
+}
+
+
+load(wdata)
+set.seed(744)
+
 Arena = 10000        #rough size of entire square arena in meters
 HexSize = 1000       #diameter of individual hexagons (territories)
 Song_volume = 85     #song sound pressure in db
@@ -31,10 +62,7 @@ SingProb = 0.33      #probability of singing on a given turn
 MoveProb = 0.33      #probability of moving on a given turn
 RestProb = 1-(SingProb+MoveProb)  #probability of resting (not singing or moving)
 
-#wdata = "/cloud/project/data/ERIC_weather_normal/ERIC_weather_normal.Rdata"
-wdata = "~/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_052420/data/ERIC_weather_cc_uniform/ERIC_weather_cc_uniform.Rdata" #Uniform Climate Change Data
-
-source("~/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_052420/src/Atmospheric_sound_attenuation.R")
+source("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/src/Atmospheric_sound_attenuation.R")
 #example song radius at 25 degrees C, 50% hhumidty, 1 Atm pressure:
 att_coef(f=Song_freq, T_cel=25, h_rel=50, Pa=101.325)
 aud_range(dbOri = Song_volume, 
@@ -45,7 +73,7 @@ aud_range(dbOri = Song_volume,
           Pa = 90)
 
 #how many iterations (model runs)
-iter = 4
+iter =4 #runs for 4 iterations for each 5 min time step
 #duration of each run
 runTime = 360 #360 min = 6 hours decent run time
 
@@ -67,8 +95,8 @@ load(wdata)
 dates = as.data.frame(table(wdsum$dateLocal))
 dates = as.vector(dates$Var1)
 
+
 for(d in 1:length(dates)){ #dates loop
-    
     Date = dates[d]
 
     print(Date)
@@ -81,11 +109,12 @@ for(k in 1:iter) { #beginning of iteration loop
                           Song_volume,
                           Song_detection,
                           Song_freq,
-                          wdsum$fTAIR,
+                          # wdsum$FTAIR,
+                          wdsum$TAIR,
                           wdsum$RELH,
                           wdsum$PRES)
   
-  
+
   r1 = matrix(data = c(0,Arena,Arena,0,0,0,Arena,Arena), nrow = 4, ncol = 2)
   Ps1 = Polygons(list(Polygon(r1)), ID = "a")
   SPs = SpatialPolygons(list(Ps1))
@@ -94,9 +123,11 @@ for(k in 1:iter) { #beginning of iteration loop
   # Fill arena with hexigons
   HexPts <-spsample(SPs, type="hexagonal", cellsize=1000)
   HexPols <- HexPoints2SpatialPolygons(HexPts)
+  
   #plot(HexPols)
   
-  set.seed(second(Sys.time())) #set seed by system time to go back to real randomness
+  # set.seed(second(Sys.time())) #set seed by system time to go back to real randomness
+  set.seed(1000)
   
   # ID index of grid
   pid <- sapply(slot(HexPols, "polygons"), function(x) slot(x, "ID"))
@@ -123,7 +154,7 @@ for(k in 1:iter) { #beginning of iteration loop
   #Generate a random location in each grid cell
   Locs <- lapply(Hx@polygons, FUN = function(x) spsample(x, n = 1, "random"))
   Locs = SpatialPoints(Locs)
-  Locs <- as.numeric(Locs@coords)
+  Locs <- as.integer(Locs@coords) #was originally as.numeric
   Locs <- t(matrix(Locs, nrow = 2, ncol = length(Locs)/2))
   
   #Add locations to the data frame
@@ -133,8 +164,18 @@ for(k in 1:iter) { #beginning of iteration loop
   timeCnt = 0
 
   #while(prod(Hx$done)==0) {
-  while(timeCnt < runTime) { 
-    
+  while(timeCnt < runTime) {
+    for (i in 1:length(wdsum$bin1)) {
+    if(wdsum$TEWL[i] <2.49){ #15% of Body Mass of painted bunting
+      SingProb = 0.33      #probability of singing on a given turn
+      MoveProb = 0.33      #probability of moving on a given turn
+      RestProb = 1-(SingProb+MoveProb)  #probability of resting (not singing or moving)
+    } else if (wdsum$TEWL[i]>2.49){
+      SingProb = 0.1 #model would not work when singing probability was 0 so keeping it at a low number, need to keep it above 0
+      MoveProb = 0.1
+      RestProb = 1-(SingProb+MoveProb)
+    }
+  }
     timeCnt = timeCnt+1 #augment timer
     #Extract relevant call radius for this iteration
     CallRad <- wdsum$CallRad[wdsum$bin1<=timeCnt & wdsum$bin2>timeCnt]
@@ -144,7 +185,7 @@ for(k in 1:iter) { #beginning of iteration loop
     #Give each bird a random number to determine activity
     Rd = runif(n=nrow(Hx@data))
     
-    #Birds with a random valule below SingProb will sing
+    #Birds with a random value below SingProb will sing
     Hx@data$Action = ifelse(Rd <= SingProb, 1, 0)  #1 = sing, 2 = move, 0 = rest
     sing = which(Hx@data$Action==1)                #which birds choose to sing
     
@@ -187,7 +228,7 @@ for(k in 1:iter) { #beginning of iteration loop
     LocX = Hx$Loc #store the old locations for plotting
     Locs <- lapply(Hx@polygons[Mvrs], FUN = function(x) spsample(x, n = 1, "random"))
     Locs = SpatialPoints(Locs)
-    Locs <- as.numeric(Locs@coords)
+    Locs <- as.integer(Locs@coords) #changed from "as.numeric" to as.integer
     Locs <- t(matrix(Locs, nrow = 2, ncol = length(Locs)/2))
     
     #Add locations to the data frame
@@ -198,12 +239,12 @@ for(k in 1:iter) { #beginning of iteration loop
     rest <- which(Hx$Action == 0)
     Hx$RestCnt[rest] <- Hx$RestCnt[rest] +1
     
-    #cat(paste0("date ", Date, ". Iteration ", k, ". TimeStamp ", timeCnt, ". Call radius ", CallRad, ". Birds finished ", length(which(Hx$done>1)), "\n"))
-    
-    ################################################
-    ########plot outcome############################
-    ################################################
-  
+    # cat(paste0("date ", Date, ". Iteration ", k, ". TimeStamp ", timeCnt, ". Call radius ", CallRad, ". Birds finished ", length(which(Hx$done>1)), "\n"))
+    # 
+    # ################################################
+    # ########plot outcome############################
+    # ################################################
+    # 
     # startLocs <- LocX
     # endLocs <- Hx$Loc[Mvrs,]
     # Arrows <- cbind(LocX[Mvrs,], Hx$Loc[Mvrs,])
@@ -256,22 +297,6 @@ for(k in 1:iter) { #beginning of iteration loop
 
 completions$percent = completions$completed/(72*iter)
 
-# Results_final = Results %>%
-#   group_by(date,N) %>%
-#   dplyr::summarise(sumSingCnt = sum(SingCnt), 
-#                    sumMoveCnt = sum(MoveCnt), 
-#                    sumRestCnt = sum(RestCnt),
-#                    sumTotalInt = sum(TotalInt))
-# 
-# completions_final = completions %>%
-#   group_by(date,time) %>%
-#   dplyr::summarise(completed = sum(completed),
-#                    SingCnt = sum(SingCnt),
-#                    MoveCnt = sum(MoveCnt),
-#                    RestCnt = sum(RestCnt),
-#                    TotalInt = sum(TotalInt)
-#                    )
-#   
 # # Saving Results ----------------------------------------------------------
 # 
 # # #Loc is an array, need to separate and add it back to dataframe
@@ -299,28 +324,29 @@ completions$percent = completions$completed/(72*iter)
 # 
 # #write.csv(formatted.results3, "/cloud/project/data_clean/2019_cold/2019_normal_abm_results.csv")
 # 
-
-setwd("/cloud/project/data_clean/normal/")
-#setwd("/cloud/project/data_clean/uniform_cc/")
-
-Results_normal = Results
-# Results_normal$total_int = (Results_normal$N1+Results_normal$N2+Results_normal$N3+Results_normal$N4+Results_normal$N5)
-# attach(Results_normal)
-save(Results_normal, file = paste0("results_normal", ".Rdata"))
-
-#Results_uniform_cc = rbind(Results2011, Results2015, Results2019)
-#save(Results_uniform_cc, file = paste0("results_uniform_cc", ".Rdata"))
-
-# Results_night_cc = rbind(Results2011, Results2015, Results2019)
-# save(Results_night_cc, file = paste0("results_night_cc", ".Rdata"))
-
-completion_normal = completions
-save(completion_normal, file = paste0("completion_normal", ".Rdata"))
-
-#completion_uniform_cc = rbind(completion_total_2011, completion_total_2015, completion_total_2019)
-#save(completion_uniform_cc, file = paste0("completion_uniform_cc", ".Rdata"))
-
-# completion_night_cc = rbind(completion_total_2011, completion_total_2015, completion_total_2019)
-# save(completion_night_cc, file = paste0("completion_night_cc", ".Rdata"))
-
-
+if(m == 0){
+  setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data_clean/normal")
+  Results_normal = Results
+  save(Results_normal, file = paste0("results_normal", ".Rdata"))
+  completion_normal = completions
+  save(completion_normal, file = paste0("completion_normal", ".Rdata"))
+} else if(m == 1){
+  setwd("~/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_052420/data_clean/uniform_cc")
+  Results_uniform_cc = Results
+  save(Results_uniform_cc, file = paste0("results_uniform_cc", ".Rdata"))
+  completion_uniform_cc = completions
+  save(completion_uniform_cc, file = paste0("completion_uniform_cc", ".Rdata"))
+  
+} else if (m == 2){
+  setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data_clean/nighttime_cc")
+  Results_nighttime_cc = Results
+  save(Results_nighttime_cc, file = paste0("results_nighttime_cc", ".Rdata"))
+  completion_nighttime_cc = completions
+  save(completion_nighttime_cc, file = paste0("completion_nighttime_cc", ".Rdata"))
+} else if (m==3){
+  setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data_clean/cc_aridity")
+  Results_aridity_cc = Results
+  save(Results_aridity_cc, file = paste0("results_aridity_cc", ".Rdata"))
+  completion_aridity_cc = completions
+  save(completion_aridity_cc, file = paste0("completion_aridity_cc", ".Rdata"))
+}

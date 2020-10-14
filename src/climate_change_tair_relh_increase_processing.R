@@ -1,0 +1,270 @@
+#Compile weather data
+
+library(suncalc)
+library(lubridate)
+library(ggplot2)
+library(okmesonet)
+library(dplyr)
+library(data.table)
+
+
+### Weather patterns, using data from ERIC Station year 2011, 2015, 
+##and 2019 on dates 6/22-6/26
+years = c(2011,2015,2019)
+
+wdsum_total = NULL
+
+for(i in 1:length(years)){ #beginning of weather data loop
+  if(i == 1){
+    beginTime = "2011-05-01 00:00:00"
+    endTime = "2011-06-30 23:55"
+  } else if(i == 2){
+    beginTime = "2015-05-01 00:00:00"
+    endTime = "2015-06-30 23:55"
+  } else if(i == 3){
+    beginTime = "2019-05-01 00:00:00"
+    endTime = "2019-06-30 23:55"
+  }
+  stid <- "ERIC"
+  stations <- read.csv("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/geoinfo.csv", stringsAsFactors = F)
+  lat = stations$nlat[which(stations$stid == stid)]
+  lon = stations$elon[which(stations$stid == stid)]
+  
+  #Obtain data from OK Mesonet website
+  updatestn() #get latest information on mesonet stations
+  okstations = updatestn() #save latest information into okstations
+  
+  w = NULL
+  w <- okmts(begintime=beginTime,
+             endtime=endTime, 
+             variables = c("TAIR", "RELH","PRES"),
+             station="eric",  
+             localtime=F) #Need to download the data into UTC
+  w$DT = as.POSIXct(w$TIME, tz = "UTC")
+  w$DTL = w$DT #Saves datetime into a new vector for local datetime
+  w$DATE = as.POSIXct(substr(w$TIME,0,10))
+  w$MONTH = as.factor(substr(w$TIME,6,7))
+  w$DAY = as.factor(substr(w$TIME,9,10))
+  w$YMD = w$DATE
+  attributes(w$DTL)$tzone = "America/Chicago" #changes datetime to Central Time Zone
+  w$YMDL <- as_date(w$DTL) #gives local (oklahoma) ymd date
+  
+  #Splitting w dataframe by date to calculate sunrise time
+  
+  dates = w %>%
+    group_by(DATE)
+  
+  dates = as.list(group_split(dates))
+  # w1 = w[1:288,]
+  # w2 = w[289:576,]
+  # w3 = w[577:864,]
+  # w4 = w[865:1152,]
+  # w5 = w[1153:1440,]
+  # 
+  # dates<-list(w1,w2,w3,w4,w5)
+  
+  wd = NULL
+  for(d in 1:length(dates)){
+    weather = as.data.frame(dates[d])
+    sr1 <- getSunlightTimes(date = as_date(weather$YMD[1]), lat = lat, lon = lon, tz = "UTC", keep = c("sunrise"))
+    sr2 <- getSunlightTimes(date = as_date(weather$YMD[1]-86400), lat = lat, lon = lon, tz = "UTC", keep = c("sunrise"))
+    sr1 <- sr1$sunrise
+    sr2 <- sr2$sunrise
+    weather$MAS <- ifelse(weather$DT<sr1, difftime(weather$DT, sr2, units = "mins"), difftime(weather$DT, sr1, units = "mins"))
+    weather$MAS <- round(weather$MAS, 0)
+    if(as.character(d) == as.character(dates[1])) {
+      wd <- weather
+    } else {
+      wd <- rbind(wd,weather)
+    }
+    #print(paste0("Date Completed:", sep = " ", dates[d]))
+  }
+  
+  labels <- seq(0,1435,5)
+  wd$bins <- cut(wd$MAS,seq(0,1440,5), labels = labels, right = FALSE)               #make 5 minute bins
+  wd$bins <- as.numeric(as.character(wd$bins))
+  wd$DEW <- wd$TAIR-((100-wd$RELH)/5)
+  wd$futureTAIR = wd$TAIR+3
+  wd$futureRH = wd$RELH-1.32
+  
+  wd = wd %>%
+    filter(!is.na(TAIR)) %>%
+    filter(!is.na(bins))
+  
+  wd$tewl = 0 #total evaporative water loss increases until it reaches 4.9
+  wd$ewl = NULL
+  for(j in 1:length(wd$bins)){
+    
+    wd$ewl[j] = (0.0045*exp((0.1511*(wd$futureTAIR[j]))))/12 #ewl equation divided by 12 to account for the 5 min bins, using linear equation from HOFI since they are similar mass
+    # wd$tewl = wd$tewl[j]+wd$ewl[j]
+    if(j == 1){
+      wd$tewl[j] = 0 + wd$ewl[j]
+    } else {
+      wd$tewl[j] = wd$tewl[j-1]+wd$ewl[j]
+    }
+    if(wd$bins[j] == 0| wd$bins[j] == 5){
+      wd$tewl[j] = 0
+    } else{
+      
+    }
+  }
+  wdsum <- data.frame(bin1 = wd$bins, 
+                      bin2 = wd$bins+5,
+                      date = wd$YMD, 
+                      dateLocal = wd$YMDL,
+                      monthLocal = substr(wd$YMDL,6,7),
+                      dayLocal = substr(wd$YMDL, 9,10),
+                      year = substr(wd$YMDL,1,4),
+                      DEW = wd$DEW,
+                      TAIR = wd$futureTAIR,
+                      #fTAIR = wd$futureTAIR, 
+                      RELH = wd$futureRH, 
+                      PRES = wd$PRES,
+                      EWL = wd$ewl,
+                      TEWL = wd$tewl)
+  
+  if(i == 1){
+    wdsum$model = "hot"
+  } else if(i == 2){
+    wdsum$model = "normal"
+  } else if(i == 3){
+    wdsum$model = "cold"
+  }
+  #wdsum_total = rbind(wdsum2011,wdsum2015,wdsum2019)
+  print(years[i]) #prints year that is done getting data for
+  
+  if(as.character(i) == as.character(dates[1])) {
+    wdsum_total <- wdsum
+  } else {
+    wdsum_total <- rbind(wdsum_total,wdsum)
+  }
+  #print(paste0("Year Completed:", sep = " ", years[i]))
+  
+  
+} #end of weather data loop
+
+#Use station ID to access folder and get a list of data files
+setwd("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_tair_relh_increase")
+fname = paste0(stid, "_weather_tair_relh_increase")
+file_list <- as.list(list.files(fname))
+
+wdsum = wdsum_total
+save(wdsum, file = paste0(fname, ".Rdata"))
+
+
+# # rain <- wd[wd$RAIN>0 & wd$TIME != 0,]
+# # raindays <- unique(rain$YMD)
+# # wd <- wd[!wd$YMD %in% raindays,]
+# 
+# #wd <- wd[wd$MAS<6*60,] #subset to sunrise data only
+
+#Graph some data.
+load("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_normal/ERIC_weather_normal.Rdata") #Load wdsum data so you do not need to run code again:
+
+load("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/data/ERIC_weather_cc_uniform/ERIC_weather_cc_uniform.Rdata") #Load wdsum data so you do not need to run code again:
+
+Song_volume = 85
+Song_detection = 30
+Song_freq = 7000
+source("/cloud/project/src/Atmospheric_sound_attenuation.R")
+wdsum$CallRad <- mapply(aud_range,Song_volume,Song_detection,Song_freq,wdsum$TAIR,wdsum$RELH,wdsum$PRES)
+wdtemp <- wdsum[which(wdsum$bin1<=600),]
+wdtemp$dateLocal <- as.factor(wdtemp$dateLocal )
+
+levels(wdtemp$year)[1] = "2081"
+levels(wdtemp$year)[2] = "2085"
+levels(wdtemp$year)[3] = "2089"
+
+wmeans = wdtemp %>% #Finds Means of data *cannot use dataframe name in dplyr!
+  rename(TAIR = fTAIR) %>%
+  filter(!is.na(TAIR)) %>%
+  group_by(year) %>%
+  dplyr::summarize(n = n(), #need to use dplyr:: because other libraries have the summarize function
+                   # CallRadMean = mean(CallRad), 
+                   # CallRadSE = (sd(CallRad)/sqrt(n)),
+                   TAIRMean = mean(TAIR),
+                   TAIRSe = (sd(TAIR)/sqrt(n)),
+                   RELHMean = mean(RELH),
+                   RELHSe = (sd(RELH)/sqrt(n)),
+                   PRESMean = mean(PRES),
+                   PRESSe = (sd(PRES)/sqrt(n)),
+                   DEWMean = mean(DEW),
+                   DEWSe = (sd(DEW)/sqrt(n))
+  )
+
+tair_bar = ggplot(wmeans, aes(x=year, y = TAIRMean, fill=year)) + 
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=TAIRMean-TAIRSe, ymax=TAIRMean+TAIRSe), 
+                width=.5,
+                position=position_dodge(.9)) + 
+  scale_y_continuous(name = "Mean Air \nTemp. (°C)") +
+  #coord_cartesian(ylim = c(75,110)) +
+  scale_fill_manual(values = cbPalette)+
+  theme_classic(base_size = 48)+
+  theme(legend.position = "top");tair_bar
+
+relh_bar = ggplot(wmeans, aes(x=year, y = RELHMean, fill=year)) + 
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=RELHMean-RELHSe, ymax=RELHMean+RELHSe), 
+                width=.5,
+                position=position_dodge(.9)) + 
+  scale_y_continuous(name = "Mean Rel. \nHumid. (%)") +
+  #coord_cartesian(ylim = c(75,110)) +
+  scale_fill_manual(values = cbPalette)+
+  theme_classic(base_size = 48)+
+  theme(legend.position = "none");relh_bar
+
+pres_bar = ggplot(wmeans, aes(x=year, y = PRESMean, fill=year)) + 
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=PRESMean-PRESSe, ymax=PRESMean+PRESSe), 
+                width=.5,
+                position=position_dodge(.9)) + 
+  scale_y_continuous(name = "Mean Air \nPres. (Pa)") +
+  #coord_cartesian(ylim = c(75,110)) +
+  scale_fill_manual(values = cbPalette)+
+  theme_classic(base_size = 48)+
+  theme(legend.position = "none",
+        axis.title.x = element_text(vjust = -10));pres_bar
+
+library(egg)
+egg::ggarrange(tair_bar,relh_bar,pres_bar, heights = c(1,1,1))
+
+
+grid.arrange(tair_bar,relh_bar,pres_bar, ncol = 1)
+
+
+ggplot( data = wmeans, aes(x=bin1, y=CallRadMean, group=model, color = model)) +
+  geom_line()+
+  theme_classic()
+
+ggplot( data = wmeans, aes(x=bin1, y=TAIRMean, group=model, color = model)) +
+  geom_line()+
+  theme_classic()
+
+ggplot( data = wmeans, aes(x=bin1, y=DEWMean, group=model, color = model)) +
+  geom_line() +
+  theme_classic()+
+  labs(x= "Min from Sunrise",
+       y = "Dewpoint \nTemperature")
+
+ggplot( data = wdtemp, aes(x=bin1, y=RELH, group=dateLocal, color = dateLocal)) +
+  geom_line() +
+  theme_classic()
+
+ggplot( data = wdtemp, aes(x=DEW, y=CallRad, group=dateLocal, color = dateLocal)) +
+  geom_line()
+
+ggplot( data = wdtemp, aes(x=DEW, y=CallRad)) +
+  geom_point()
+
+ggplot( data = wdtemp, aes(x=TAIR, y=DEW, group=dateLocal, color = dateLocal)) +
+  geom_line() +
+  theme_classic()+
+  labs(x= "Air Temperature (C)",
+       y = "Dewpoint \nTemperature")
+
+ggplot( data = wdtemp, aes(x=TAIR, y=RELH, group=dateLocal, color = dateLocal)) +
+  geom_line() +
+  theme_classic()+
+  labs(x= "Air Temperature (C)",
+       y = "Relative \nHumidity (%)")
