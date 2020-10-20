@@ -25,7 +25,7 @@ library(dplyr)
 ##Which model are you running?
 
 m=0 #0 for normal data, 
-    #1 for uniform climate change, 
+    #1 for uniform climate change, 3C increase in temp only
     #2 for asymmetric increases in nighttime temperatures, 
     #3 for increases in temperature and decreases in relh
 
@@ -50,8 +50,8 @@ if(m == 0){
 }
 
 
-load(wdata)
-set.seed(744)
+# load(wdata)
+# set.seed(744)
 
 Arena = 10000        #rough size of entire square arena in meters
 HexSize = 1000       #diameter of individual hexagons (territories)
@@ -61,6 +61,7 @@ Song_freq = 7000     #relevant frequency in Hz
 SingProb = 0.33      #probability of singing on a given turn
 MoveProb = 0.33      #probability of moving on a given turn
 RestProb = 1-(SingProb+MoveProb)  #probability of resting (not singing or moving)
+value = integer(0)
 
 source("C:/Users/meely/OneDrive - University of Oklahoma/University of Oklahoma/Ross Lab/Aridity and Song Attenuation/Aridity Agent Based Model/abm_month_timeframe_090120/src/Atmospheric_sound_attenuation.R")
 #example song radius at 25 degrees C, 50% hhumidty, 1 Atm pressure:
@@ -73,7 +74,7 @@ aud_range(dbOri = Song_volume,
           Pa = 90)
 
 #how many iterations (model runs)
-iter =4 #runs for 4 iterations for each 5 min time step
+iter =1 #runs for 4 iterations for each 5 min time step
 #duration of each run
 runTime = 360 #360 min = 6 hours decent run time
 
@@ -126,8 +127,8 @@ for(k in 1:iter) { #beginning of iteration loop
   
   #plot(HexPols)
   
-  # set.seed(second(Sys.time())) #set seed by system time to go back to real randomness
-  set.seed(1000)
+  set.seed(second(Sys.time())) #set seed by system time to go back to real randomness
+  # set.seed(1000)
   
   # ID index of grid
   pid <- sapply(slot(HexPols, "polygons"), function(x) slot(x, "ID"))
@@ -154,7 +155,7 @@ for(k in 1:iter) { #beginning of iteration loop
   #Generate a random location in each grid cell
   Locs <- lapply(Hx@polygons, FUN = function(x) spsample(x, n = 1, "random"))
   Locs = SpatialPoints(Locs)
-  Locs <- as.integer(Locs@coords) #was originally as.numeric
+  Locs <- as.numeric(Locs@coords) #was originally as.numeric
   Locs <- t(matrix(Locs, nrow = 2, ncol = length(Locs)/2))
   
   #Add locations to the data frame
@@ -171,8 +172,8 @@ for(k in 1:iter) { #beginning of iteration loop
       MoveProb = 0.33      #probability of moving on a given turn
       RestProb = 1-(SingProb+MoveProb)  #probability of resting (not singing or moving)
     } else if (wdsum$TEWL[i]>2.49){
-      SingProb = 0.1 #model would not work when singing probability was 0 so keeping it at a low number, need to keep it above 0
-      MoveProb = 0.1
+      SingProb = 0.01 #model would not work when singing probability was 0 so keeping it at a low number, need to keep it above 0
+      MoveProb = 0.01
       RestProb = 1-(SingProb+MoveProb)
     }
   }
@@ -223,18 +224,23 @@ for(k in 1:iter) { #beginning of iteration loop
     Hx@data$Action[Rd >= 1-MoveProb] = 2  #1 = sing, 2 = move, 0 = rest
     Hx@data$Action[Rd >= 1-MoveProb] = 2  #1 = sing, 2 = move, 0 = rest
     Mvrs <- which(Hx$Action == 2)
-    
-    #Generate some new locations for the movers
-    LocX = Hx$Loc #store the old locations for plotting
-    Locs <- lapply(Hx@polygons[Mvrs], FUN = function(x) spsample(x, n = 1, "random"))
-    Locs = SpatialPoints(Locs)
-    Locs <- as.integer(Locs@coords) #changed from "as.numeric" to as.integer
-    Locs <- t(matrix(Locs, nrow = 2, ncol = length(Locs)/2))
-    
-    #Add locations to the data frame
-    Hx$Loc[Mvrs,] = Locs[,1:2]
-    Hx$MoveCnt[Mvrs] <- Hx$MoveCnt[Mvrs] + 1
-    
+
+###Mvrs being empty is what gives the non-numeric matrix error, need to figure out a way around this
+    if(length(value) != length(Mvrs)){
+      #Generate some new locations for the movers
+      LocX = Hx$Loc #store the old locations for plotting
+      Locs <- lapply(Hx@polygons[Mvrs], FUN = function(x) spsample(x, n = 1, "random"))
+      Locs = SpatialPoints(Locs)
+      Locs <- as.numeric(Locs@coords) #changed from "as.numeric" to as.integer
+      Locs <- t(matrix(Locs, nrow = 2, ncol = length(Locs)/2))
+      
+    } else {
+      Locs = LocX
+    }
+      #Add locations to the data frame
+      Hx$Loc[Mvrs,] = Locs[,1:2]
+      Hx$MoveCnt[Mvrs] <- Hx$MoveCnt[Mvrs] + 1
+      
     #Resting birds just add to the restCnt column
     rest <- which(Hx$Action == 0)
     Hx$RestCnt[rest] <- Hx$RestCnt[rest] +1
